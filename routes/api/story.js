@@ -25,7 +25,7 @@ route.get("/", userAuthViaToken, async (req, res) => {
         },
       });
     } else {
-      const stories = await getStories(10, req.query.start);
+      const stories = await getStories(10, req.query.page * 10);
       res.status(200).send({
         success: true,
         user: req.user,
@@ -42,10 +42,10 @@ route.get("/", userAuthViaToken, async (req, res) => {
 // route to publish a story
 route.post("/", adminAuth, async (req, res) => {
   try {
-    const story = await addStory(req.body.title, req.body.body, reqbody.image);
+    const story = await addStory(req.body.title, req.body.body, req.body.image);
     res.status(201).send({
       success: true,
-      story: story.id,
+      storyId: story.id,
       message: "Story added successfully",
     });
   } catch (err) {
@@ -61,7 +61,7 @@ route.patch("/:storyId", adminAuth, async (req, res) => {
     const story = await editStory(storyId, req.body.title, req.body.body, req.body.image);
     res.status(200).send({
       success: true,
-      story: story.id,
+      storyId: story.id,
       message: "Story successfully edited",
     });
   } catch (err) {

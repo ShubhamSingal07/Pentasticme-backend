@@ -55,19 +55,21 @@ const decreaseLike = async (userId, photoId) => {
 // addComment
 const addComment = async (userId, name, photoId, comment) => {
   try {
+    const commentId = uuid();
     await Photo.findByIdAndUpdate(photoId, {
       $inc: {
         "comments.total": 1,
       },
       $push: {
         "comments.comment": {
-          commentId: uuid(),
+          commentId,
           userId,
           name,
           body: comment,
         },
       },
     });
+    return commentId;
   } catch (err) {
     throw new Error("Could not connect to Database.Please try again later.");
   }

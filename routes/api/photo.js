@@ -5,7 +5,7 @@ const { getPhotos, addPhotos, increaseLike, decreaseLike, editComment, deleteCom
 
 route.get("/", userAuthViaToken, async (req, res) => {
   try {
-    let photos = await getPhotos(12, req.query.start);
+    let photos = await getPhotos(12, req.query.page * 12);
     if (req.user) {
       photos = photos.map(photo => {
         const isLiked = photo.likes.by.includes(req.user.id);
@@ -71,9 +71,10 @@ route.patch("/dislike/:photoId", readerAuth, async (req, res) => {
 
 route.patch("/comment/add/:photoId", readerAuth, async (req, res) => {
   try {
-    await addComment(req.user.id, req.user.username, photoId, req.body.comment);
+    const commentId = await addComment(req.user.id, req.user.username, photoId, req.body.comment);
     res.status(200).send({
       success: true,
+      commentId,
       message: "Comment added successfully",
     });
   } catch (err) {
@@ -83,9 +84,9 @@ route.patch("/comment/add/:photoId", readerAuth, async (req, res) => {
   }
 });
 
-route.patch("/comment/edit/:commentId", readerAuth, async (req, res) => {
+route.patch("/comment/edit/:photoId", readerAuth, async (req, res) => {
   try {
-    await editComment(commentId, req.body.comment);
+    await editComment(req.body.commentId, req.body.comment);
     res.status(200).send({
       success: true,
       message: "Comment edited successfully",
@@ -97,7 +98,7 @@ route.patch("/comment/edit/:commentId", readerAuth, async (req, res) => {
   }
 });
 
-route.patch("/comment/delete/:photoId", readerAuth, async (req, res) => {
+route.delete("/comment/:photoId", readerAuth, async (req, res) => {
   try {
     await deleteComment(photoId, req.body.commentId);
     res.status(200).send({

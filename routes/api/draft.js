@@ -27,11 +27,12 @@ route.get("/", adminAuth, async (req, res) => {
   }
 });
 
-route.patch("/:draftId", adminAuth, async (req, res) => {
+route.post("/", adminAuth, async (req, res) => {
   try {
-    await addToDrafts(draftId, req.body.title, req.body.body);
+    const draftId = await addToDrafts(req.body.draftId, req.body.title, req.body.body);
     res.status(200).send({
       success: true,
+      draftId,
       message: "Successfully added to drafts",
     });
   } catch (err) {
