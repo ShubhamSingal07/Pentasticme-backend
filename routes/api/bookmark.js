@@ -6,10 +6,9 @@ const { getAllBookmarks, addToBookmarks, removeFromBookmarks, getStory } = requi
 route.get("/", readerAuth, async (req, res) => {
   try {
     const bookmarks = await getAllBookmarks(req.user.id);
-    const stories = bookmarks.storyId.map(id => getStory(id, true));
+    const stories = bookmarks.storyId.map(id => await getStory(id, true));
     res.status(200).send({
       success: true,
-      user: req.user,
       stories,
     });
   } catch (err) {
@@ -21,7 +20,7 @@ route.get("/", readerAuth, async (req, res) => {
 
 route.post("/", readerAuth, async (req, res) => {
   try {
-    await addToBookmarks(req.body.userId, req.body.storyId);
+    await addToBookmarks(req.user.id, req.body.storyId);
     res.status(200).send({
       success: true,
       message: "Story added to bookmarks successfully",
