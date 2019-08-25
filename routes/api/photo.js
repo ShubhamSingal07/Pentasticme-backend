@@ -1,24 +1,51 @@
 const route = require("express").Router();
 
 const { userAuthViaToken, adminAuth, readerAuth } = require("../../middlewares");
-const { getPhotos, addPhotos, increaseLike, decreaseLike, editComment, deleteComment } = require("../../controllers");
+const {
+  getPhotos,
+  getPhoto,
+  addPhotos,
+  increaseLike,
+  decreaseLike,
+  editComment,
+  deleteComment,
+  addComment,
+} = require("../../controllers");
 
 route.get("/", userAuthViaToken, async (req, res) => {
   try {
-    let photos = await getPhotos(12, req.query.page * 12);
-    if (req.user) {
-      photos = photos.map(photo => {
-        const isLiked = photo.likes.by.includes(req.user.id);
-        return {
-          ...photo,
-          isLiked,
-        };
+    if (req.query.page) {
+      let photos = await getPhotos(12, req.query.page * 12);
+      if (req.user) {
+        photos = photos.map(photo => {
+          const isLiked = photo.likes.by.includes(req.user.id);
+          const totalComments = photo.comments.total;
+          const totalLikes = photo.likes.total;
+          delete photo.comments;
+          delete photo.likes;
+          return {
+            ...photo,
+            isLiked,
+            comments: totalComments,
+            likes: totalLikes,
+          };
+        });
+      }
+      return res.status(200).send({
+        success: true,
+        user: req.user,
+        photos,
       });
+    }
+
+    const photo = await getPhoto(req.query.photoId);
+    if (req.user) {
+      photo.isLiked = photo.likes.by.includes(req.user.id);
     }
     res.status(200).send({
       success: true,
       user: req.user,
-      photos,
+      photo,
     });
   } catch (err) {
     res.status(500).send({

@@ -1,7 +1,15 @@
 const route = require("express").Router();
 
 const { userAuthViaToken, adminAuth, readerAuth } = require("../../middlewares");
-const { getStories, getStory, addStory, editStory, increaseClap, decreaseClap } = require("../../controllers");
+const {
+  getStories,
+  getStory,
+  addStory,
+  editStory,
+  increaseClap,
+  decreaseClap,
+  getAllBookmarks,
+} = require("../../controllers");
 
 // route to get the stories or story for story page
 route.get("/", userAuthViaToken, async (req, res) => {
@@ -9,6 +17,11 @@ route.get("/", userAuthViaToken, async (req, res) => {
     const id = req.query.storyId;
     if (id) {
       const story = await getStory(id);
+      let isBookmarked = false;
+      if (req.user) {
+        const bookmarks = await getAllBookmarks(req.user.id);
+        isBookmarked = bookmarks.storyId.includes(id);
+      }
       let isLiked = false;
       const claps = story.claps.total;
       if (req.user) {
@@ -21,6 +34,7 @@ route.get("/", userAuthViaToken, async (req, res) => {
         story: {
           ...story,
           isLiked,
+          isBookmarked,
           claps,
         },
       });

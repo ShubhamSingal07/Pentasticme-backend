@@ -22,6 +22,14 @@ const getPhotos = async (limit, start = 0) => {
   }
 };
 
+const getPhoto = async photoId => {
+  try {
+    return await Photo.findById(photoId);
+  } catch (err) {
+    throw new Error("Could not connect to Database. Please try again later.");
+  }
+};
+
 const increaseLike = async (userId, photoId) => {
   try {
     await Photo.findByIdAndUpdate(photoId, {
@@ -105,6 +113,7 @@ const deleteComment = async (photoId, commentId) => {
 module.exports = {
   addPhotos,
   getPhotos,
+  getPhoto,
   increaseLike,
   decreaseLike,
   addComment,

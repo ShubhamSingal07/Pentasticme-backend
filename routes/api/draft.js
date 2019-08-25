@@ -10,14 +10,12 @@ route.get("/", adminAuth, async (req, res) => {
       const draft = await getDraft(id);
       return res.status(200).send({
         success: true,
-        user: req.user,
         draft,
       });
     }
     const drafts = await getDrafts();
     res.status(200).send({
       success: true,
-      user: req.user,
       drafts,
     });
   } catch (err) {
