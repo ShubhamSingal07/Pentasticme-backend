@@ -6,5 +6,6 @@ route.use("/home", require("./home"));
 route.use("/photo", require("./photo"));
 route.use("/story", require("./story"));
 route.use("/token", require("./token"));
+route.use("/image", require("./image"));
 
 module.exports = route;

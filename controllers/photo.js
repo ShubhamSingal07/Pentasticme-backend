@@ -1,4 +1,5 @@
 const uuid = require("uuid/v4");
+const ObjectId = require("mongoose").Types.ObjectId;
 
 const { Photo } = require("../models/photo");
 
@@ -15,7 +16,12 @@ const addPhotos = async url => {
 
 const getPhotos = async (limit, start = 0) => {
   try {
-    const photos = await Photo.find({}, { $sort: { updatedAt: -1 }, $limit: limit, skip: start });
+    const photos = await Photo.find({})
+      .sort({
+        updatedAt: -1.0,
+      })
+      .skip(start)
+      .limit(limit);
     return photos;
   } catch (err) {
     throw new Error("Could not connect to Database. Please try again later.");
@@ -30,32 +36,35 @@ const getPhoto = async photoId => {
   }
 };
 
-const increaseLike = async (userId, photoId) => {
+const increaseLike = async (userId, username, photoId) => {
   try {
     await Photo.findByIdAndUpdate(photoId, {
       $inc: {
         "likes.total": 1,
       },
       $push: {
-        "likes.by": userId,
+        "likes.by": { userId, name: username },
       },
     });
   } catch (err) {
+    console.log(err);
     throw new Error("Could not connect to Database. Please try again later.");
   }
 };
 
 const decreaseLike = async (userId, photoId) => {
   try {
+    console.log(userId, photoId);
     await Photo.findByIdAndUpdate(photoId, {
       $inc: {
         "likes.total": -1,
       },
       $pull: {
-        "likes.by": userId,
+        "likes.by": { userId },
       },
     });
   } catch (err) {
+    console.log(err);
     throw new Error("Could not connect to Database. Please try again later.");
   }
 };
@@ -83,13 +92,16 @@ const addComment = async (userId, name, photoId, comment) => {
   }
 };
 
-const editComment = async (commentId, comment) => {
+const editComment = async (photoId, commentId, comment) => {
   try {
     await Photo.findOneAndUpdate(
-      { "commments.comment.commentId": commentId },
+      {
+        _id: ObjectId(photoId),
+        "comments.comment.commentId": commentId,
+      },
       {
         $set: {
-          "comments.$.comment.$.body": comment,
+          "comments.comment.$.body": comment,
         },
       },
     );
@@ -101,8 +113,11 @@ const editComment = async (commentId, comment) => {
 const deleteComment = async (photoId, commentId) => {
   try {
     await Photo.findByIdAndUpdate(photoId, {
+      $inc: {
+        "comments.total": -1,
+      },
       $pull: {
-        "comments.comment.commentId": commentId,
+        "comments.comment": { commentId },
       },
     });
   } catch (err) {

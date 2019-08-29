@@ -15,7 +15,7 @@ const adminAuth = async (req, res, next) => {
       error: "You should log in first",
     });
   }
-  if (decodedUser.role !== "admin") {
+  if (decodedUser.role !== 'Admin') {
     return res.status(403).send({
       error: "Only for admin",
     });

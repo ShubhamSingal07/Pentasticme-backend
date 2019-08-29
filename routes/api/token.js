@@ -13,6 +13,7 @@ route.get("/", async (req, res) => {
       user,
     });
   } catch (err) {
+    console.log(err)
     res.status(500).send({
       error: "Internal Server Error",
     });

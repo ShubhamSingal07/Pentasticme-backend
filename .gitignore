@@ -1,4 +1,5 @@
 node_modules/
-prod.env
+.env
 package-lock.json
 todo.md
+data/

@@ -19,24 +19,23 @@ route.get("/", userAuthViaToken, async (req, res) => {
       const story = await getStory(id);
       let isBookmarked = false;
       if (req.user) {
-        const bookmarks = await getAllBookmarks(req.user.id);
+        const bookmarks = await getAllBookmarks(req.user._id);
         isBookmarked = bookmarks.storyId.includes(id);
       }
       let isLiked = false;
       const claps = story.claps.total;
       if (req.user) {
-        isLiked = story.claps.by.includes(req.user.id);
+        isLiked = story.claps.by.includes(req.user._id);
       }
-      delete story.claps;
+
+      story._doc.claps = claps;
+      story._doc.isLiked = isLiked;
+      story._doc.isBookmarked = isBookmarked;
+
       res.status(200).send({
         success: true,
         user: req.user,
-        story: {
-          ...story,
-          isLiked,
-          isBookmarked,
-          claps,
-        },
+        story,
       });
     } else {
       const stories = await getStories(10, req.query.page * 10);
@@ -72,13 +71,14 @@ route.post("/", adminAuth, async (req, res) => {
 // route to edit a story
 route.patch("/:storyId", adminAuth, async (req, res) => {
   try {
-    const story = await editStory(storyId, req.body.title, req.body.body, req.body.image);
+    const story = await editStory(req.params.storyId, req.body.title, req.body.body, req.body.image);
     res.status(200).send({
       success: true,
       storyId: story.id,
       message: "Story successfully edited",
     });
   } catch (err) {
+    console.log(err);
     res.status(500).send({
       error: "Internal Server Error",
     });
@@ -87,7 +87,7 @@ route.patch("/:storyId", adminAuth, async (req, res) => {
 
 route.patch("/clap/:storyId", readerAuth, async (req, res) => {
   try {
-    await increaseClap(req.user.id, storyId);
+    await increaseClap(req.user._id, req.params.storyId);
     res.status(200).send({
       success: true,
       message: "Increased claps for this story successfully",
@@ -99,12 +99,12 @@ route.patch("/clap/:storyId", readerAuth, async (req, res) => {
   }
 });
 
-route.patch("/unclap/:storyId", readerauth, async (req, res) => {
+route.patch("/unclap/:storyId", readerAuth, async (req, res) => {
   try {
-    await decreaseClap(req.user.id, storyId);
+    await decreaseClap(req.user._id, req.params.storyId);
     res.status(200).send({
       success: true,
-      message: "Increased claps for this story successfully",
+      message: "Decreased claps for this story successfully",
     });
   } catch (err) {
     res.status(500).send({

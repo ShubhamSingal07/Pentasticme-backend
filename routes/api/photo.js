@@ -16,21 +16,27 @@ route.get("/", userAuthViaToken, async (req, res) => {
   try {
     if (req.query.page) {
       let photos = await getPhotos(12, req.query.page * 12);
-      if (req.user) {
-        photos = photos.map(photo => {
-          const isLiked = photo.likes.by.includes(req.user.id);
-          const totalComments = photo.comments.total;
-          const totalLikes = photo.likes.total;
-          delete photo.comments;
-          delete photo.likes;
-          return {
-            ...photo,
-            isLiked,
-            comments: totalComments,
-            likes: totalLikes,
-          };
-        });
-      }
+      photos = photos.map(photo => {
+        let isLiked = false;
+        const totalComments = photo.comments.total;
+        const totalLikes = photo.likes.total;
+        const arr = photo.likes.by;
+        if (req.user) {
+          for (let i = 0; i < arr.length; i++) {
+            if (arr[i].userId === req.user._id) {
+              isLiked = true;
+              break;
+            }
+          }
+        }
+        photo._doc.comments = totalComments;
+        photo._doc.likes = totalLikes;
+        photo._doc.isLiked = isLiked;
+        return {
+          photo,
+        };
+      });
+
       return res.status(200).send({
         success: true,
         user: req.user,
@@ -38,16 +44,25 @@ route.get("/", userAuthViaToken, async (req, res) => {
       });
     }
 
+    let isLiked = false;
     const photo = await getPhoto(req.query.photoId);
     if (req.user) {
-      photo.isLiked = photo.likes.by.includes(req.user.id);
+      let arr = photo.likes.by;
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i].userId === req.user._id) {
+          isLiked = true;
+          break;
+        }
+      }
     }
+    photo._doc.isLiked = isLiked;
     res.status(200).send({
       success: true,
       user: req.user,
       photo,
     });
   } catch (err) {
+    console.log(array);
     res.status(500).send({
       error: "Internal Server Error",
     });
@@ -70,12 +85,13 @@ route.post("/", adminAuth, async (req, res) => {
 
 route.patch("/like/:photoId", readerAuth, async (req, res) => {
   try {
-    await increaseLike(req.user.id, photoId);
+    await increaseLike(req.user._id, req.user.username, req.params.photoId);
     res.status(200).send({
       success: true,
       message: "Photo liked successfully",
     });
   } catch (err) {
+    console.log(err);
     res.status(500).send({
       error: "Internal Server Error",
     });
@@ -84,7 +100,7 @@ route.patch("/like/:photoId", readerAuth, async (req, res) => {
 
 route.patch("/dislike/:photoId", readerAuth, async (req, res) => {
   try {
-    await decreaseLike(req.user.id, photoId);
+    await decreaseLike(req.user._id, req.params.photoId);
     res.status(200).send({
       success: true,
       message: "Photo disliked successfully",
@@ -98,7 +114,7 @@ route.patch("/dislike/:photoId", readerAuth, async (req, res) => {
 
 route.patch("/comment/add/:photoId", readerAuth, async (req, res) => {
   try {
-    const commentId = await addComment(req.user.id, req.user.username, photoId, req.body.comment);
+    const commentId = await addComment(req.user._id, req.user.username, req.params.photoId, req.body.comment);
     res.status(200).send({
       success: true,
       commentId,
@@ -113,7 +129,7 @@ route.patch("/comment/add/:photoId", readerAuth, async (req, res) => {
 
 route.patch("/comment/edit/:photoId", readerAuth, async (req, res) => {
   try {
-    await editComment(req.body.commentId, req.body.comment);
+    await editComment(req.params.photoId, req.body.commentId, req.body.comment);
     res.status(200).send({
       success: true,
       message: "Comment edited successfully",
@@ -127,13 +143,16 @@ route.patch("/comment/edit/:photoId", readerAuth, async (req, res) => {
 
 route.delete("/comment/:photoId", readerAuth, async (req, res) => {
   try {
-    await deleteComment(photoId, req.body.commentId);
+    await deleteComment(req.params.photoId, req.body.commentId);
     res.status(200).send({
       success: true,
       message: "Comment deleted successfully",
     });
   } catch (err) {
-    throw new Error("Could not connect to Database. Please try again later");
+    console.log(err);
+    res.status(500).send({
+      error: "Internal Server Error",
+    });
   }
 });
 

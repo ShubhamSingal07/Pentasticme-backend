@@ -18,7 +18,7 @@ app.use(
 app.use("/api", require("./routes/api"));
 
 mongoose
-  .connect(process.env.MONGODB_URL, { useNewUrlParser: true })
+  .connect(process.env.MONGODB_URL, { useNewUrlParser: true, useFindAndModify: false })
   .then(() => {
     app.listen(port, () => {
       console.log(`server started at http://localhost:${port}`);

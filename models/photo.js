@@ -9,7 +9,7 @@ const photoSchema = new mongoose.Schema(
     },
     comments: {
       total: { type: Number, default: 0 },
-      comment: [{ commentId: String, userId: Number, name: String, body: String }],
+      comment: [{ commentId: String, userId: String, name: String, body: String }],
     },
   },
   {

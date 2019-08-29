@@ -2,7 +2,12 @@ const { Story } = require("../models/story");
 
 const getStories = async (limit, start = 0) => {
   try {
-    return await Story.find({}, { title: 1, image: 1 }, { $sort: { updatedAt: -1 }, $limit: limit, skip: start });
+    return await Story.find({}, { title: 1, image: 1 })
+      .sort({
+        updatedAt: -1,
+      })
+      .skip(start)
+      .limit(limit);
   } catch (err) {
     throw new Error("Could not connect to Database. Please try again later.");
   }
