@@ -14,6 +14,7 @@ route.get("/", userAuthViaToken, async (req, res) => {
   } catch (err) {
     res.status(500).send({
       error: "Internal Server Error",
+      user: req.user,
     });
   }
 });

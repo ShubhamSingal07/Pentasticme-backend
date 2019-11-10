@@ -10,6 +10,7 @@ const {
   decreaseClap,
   getAllBookmarks,
 } = require("../../controllers");
+const { Story } = require("../../models/story");
 
 // route to get the stories or story for story page
 route.get("/", userAuthViaToken, async (req, res) => {
@@ -20,7 +21,7 @@ route.get("/", userAuthViaToken, async (req, res) => {
       let isBookmarked = false;
       if (req.user) {
         const bookmarks = await getAllBookmarks(req.user._id);
-        isBookmarked = bookmarks.storyId.includes(id);
+        if (bookmarks) isBookmarked = bookmarks.storyId.includes(id);
       }
       let isLiked = false;
       const claps = story.claps.total;
@@ -32,17 +33,19 @@ route.get("/", userAuthViaToken, async (req, res) => {
       story._doc.isLiked = isLiked;
       story._doc.isBookmarked = isBookmarked;
 
-      res.status(200).send({
+      return res.status(200).send({
         success: true,
         user: req.user,
         story,
       });
     } else {
       const stories = await getStories(10, req.query.page * 10);
-      res.status(200).send({
+      const count = await Story.countDocuments();
+      return res.status(200).send({
         success: true,
         user: req.user,
         stories,
+        pages: Math.ceil(count / 10),
       });
     }
   } catch (err) {
@@ -55,7 +58,7 @@ route.get("/", userAuthViaToken, async (req, res) => {
 // route to publish a story
 route.post("/", adminAuth, async (req, res) => {
   try {
-    const story = await addStory(req.body.title, req.body.body, req.body.image);
+    const story = await addStory(req.body.title, req.body.body, req.body.image, req.body.description);
     res.status(201).send({
       success: true,
       storyId: story.id,
@@ -71,14 +74,19 @@ route.post("/", adminAuth, async (req, res) => {
 // route to edit a story
 route.patch("/:storyId", adminAuth, async (req, res) => {
   try {
-    const story = await editStory(req.params.storyId, req.body.title, req.body.body, req.body.image);
+    const story = await editStory(
+      req.params.storyId,
+      req.body.title,
+      req.body.body,
+      req.body.image,
+      req.body.description,
+    );
     res.status(200).send({
       success: true,
       storyId: story.id,
       message: "Story successfully edited",
     });
   } catch (err) {
-    console.log(err);
     res.status(500).send({
       error: "Internal Server Error",
     });

@@ -2,16 +2,29 @@ const { AboutAndContact } = require("../models/aboutAndContact");
 
 const getAbout = async () => {
   try {
-    const about = await AboutAndContact.find({}, { about: 1 });
+    const about = await AboutAndContact.find({}, { about: 1, aboutBackgroundImage: 1 });
     return about[0];
   } catch (err) {
     throw new Error("Could not connect to Database. Please try again later");
   }
 };
 
+const changeAboutBackgroundImage = async image => {
+  try {
+    await AboutAndContact.updateMany(
+      {},
+      {
+        aboutBackgroundImage: image,
+      },
+    );
+  } catch (err) {
+    throw new Error("Could not connect to Database. Please try again later.");
+  }
+};
+
 const addToAbout = async body => {
   try {
-    await AboutAndContact.update(
+    await AboutAndContact.updateMany(
       {},
       { about: body },
       {
@@ -34,7 +47,7 @@ const getContact = async () => {
 
 const addToContact = async body => {
   try {
-    await AboutAndContact.update(
+    await AboutAndContact.updateMany(
       {},
       { contact: body },
       {
@@ -47,6 +60,7 @@ const addToContact = async body => {
 };
 
 module.exports = {
+  changeAboutBackgroundImage,
   getAbout,
   addToAbout,
   getContact,

@@ -10,12 +10,14 @@ route.get("/", adminAuth, async (req, res) => {
       const draft = await getDraft(id);
       return res.status(200).send({
         success: true,
+        user: req.user,
         draft,
       });
     }
     const drafts = await getDrafts();
     res.status(200).send({
       success: true,
+      user: req.user,
       drafts,
     });
   } catch (err) {
@@ -43,7 +45,7 @@ route.post("/", adminAuth, async (req, res) => {
 route.post("/publish", adminAuth, async (req, res) => {
   try {
     await removeFromDrafts(req.body.draftId);
-    const story = await addStory(req.body.title, dreq.body.body, req.body.image);
+    const story = await addStory(req.body.title, req.body.body, req.body.image, req.body.description);
     res.status(200).send({
       success: true,
       storyId: story.id,
@@ -58,7 +60,7 @@ route.post("/publish", adminAuth, async (req, res) => {
 
 route.delete("/:draftId", adminAuth, async (req, res) => {
   try {
-    await removeFromDrafts(draftId);
+    await removeFromDrafts(req.params.draftId);
     res.status(200).send({
       success: true,
       message: "Draft successfully deleted",

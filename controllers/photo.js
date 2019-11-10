@@ -1,4 +1,3 @@
-const uuid = require("uuid/v4");
 const ObjectId = require("mongoose").Types.ObjectId;
 
 const { Photo } = require("../models/photo");
@@ -14,15 +13,39 @@ const addPhotos = async url => {
   }
 };
 
-const getPhotos = async (limit, start = 0) => {
+const getPhotos = async (limit, start = 0, user) => {
   try {
     const photos = await Photo.find({})
       .sort({
-        updatedAt: -1.0,
+        createdAt: -1,
       })
       .skip(start)
       .limit(limit);
-    return photos;
+    const data = await Promise.all(
+      photos.map(async photo => {
+        let isLiked = false;
+        const totalComments = photo.comments.total;
+        const totalLikes = photo.likes.total;
+        if (user) {
+          isLiked = await getIsLiked(photo._id, user._id);
+        }
+        photo._doc.comments = totalComments;
+        photo._doc.likes = totalLikes;
+        photo._doc.isLiked = isLiked;
+        return {
+          ...photo._doc,
+        };
+      }),
+    );
+    return data;
+  } catch (err) {
+    throw new Error("Could not connect to Database. Please try again later.");
+  }
+};
+
+const getPhotosCount = async () => {
+  try {
+    return await Photo.countDocuments({});
   } catch (err) {
     throw new Error("Could not connect to Database. Please try again later.");
   }
@@ -31,6 +54,14 @@ const getPhotos = async (limit, start = 0) => {
 const getPhoto = async photoId => {
   try {
     return await Photo.findById(photoId);
+  } catch (err) {
+    throw new Error("Could not connect to Database. Please try again later.");
+  }
+};
+
+const getIsLiked = async (photoId, userId) => {
+  try {
+    return await Photo.exists({ _id: ObjectId(photoId), "likes.by.userId": userId });
   } catch (err) {
     throw new Error("Could not connect to Database. Please try again later.");
   }
@@ -47,14 +78,12 @@ const increaseLike = async (userId, username, photoId) => {
       },
     });
   } catch (err) {
-    console.log(err);
     throw new Error("Could not connect to Database. Please try again later.");
   }
 };
 
 const decreaseLike = async (userId, photoId) => {
   try {
-    console.log(userId, photoId);
     await Photo.findByIdAndUpdate(photoId, {
       $inc: {
         "likes.total": -1,
@@ -64,29 +93,23 @@ const decreaseLike = async (userId, photoId) => {
       },
     });
   } catch (err) {
-    console.log(err);
     throw new Error("Could not connect to Database. Please try again later.");
   }
 };
 
 // addComment
-const addComment = async (userId, name, photoId, comment) => {
+const addComment = async (userId, thumbnail, name, photoId, comment) => {
   try {
-    const commentId = uuid();
-    await Photo.findByIdAndUpdate(photoId, {
-      $inc: {
-        "comments.total": 1,
-      },
-      $push: {
-        "comments.comment": {
-          commentId,
-          userId,
-          name,
-          body: comment,
-        },
-      },
+    const res = await Photo.findById(photoId);
+    res.comments.total += 1;
+    const data = res.comments.comment.push({
+      userId,
+      thumbnail,
+      name,
+      body: comment,
     });
-    return commentId;
+    const doc = await res.save();
+    return doc.comments.comment[data - 1]._id;
   } catch (err) {
     throw new Error("Could not connect to Database.Please try again later.");
   }
@@ -97,7 +120,7 @@ const editComment = async (photoId, commentId, comment) => {
     await Photo.findOneAndUpdate(
       {
         _id: ObjectId(photoId),
-        "comments.comment.commentId": commentId,
+        "comments.comment._id": ObjectId(commentId),
       },
       {
         $set: {
@@ -110,16 +133,19 @@ const editComment = async (photoId, commentId, comment) => {
   }
 };
 
-const deleteComment = async (photoId, commentId) => {
+const deleteComment = async (photoId, commentId, userId) => {
   try {
-    await Photo.findByIdAndUpdate(photoId, {
-      $inc: {
-        "comments.total": -1,
+    await Photo.findOneAndUpdate(
+      { _id: ObjectId(photoId), "comments.comment.userId": userId },
+      {
+        $inc: {
+          "comments.total": -1,
+        },
+        $pull: {
+          "comments.comment": { _id: ObjectId(commentId) },
+        },
       },
-      $pull: {
-        "comments.comment": { commentId },
-      },
-    });
+    );
   } catch (err) {
     throw new Error("Could not connect to Database. Please try again later.");
   }
@@ -128,7 +154,9 @@ const deleteComment = async (photoId, commentId) => {
 module.exports = {
   addPhotos,
   getPhotos,
+  getPhotosCount,
   getPhoto,
+  getIsLiked,
   increaseLike,
   decreaseLike,
   addComment,

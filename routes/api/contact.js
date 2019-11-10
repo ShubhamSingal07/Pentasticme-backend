@@ -1,4 +1,5 @@
 const route = require("express").Router();
+const nodemailer = require("nodemailer");
 
 const { userAuthViaToken, adminAuth } = require("../../middlewares");
 const { getContact, addToContact } = require("../../controllers");
@@ -24,6 +25,38 @@ route.post("/", adminAuth, async (req, res) => {
     res.status(200).send({
       success: true,
       message: "Contact successfully added",
+    });
+  } catch (err) {
+    res.status(500).send({
+      error: "Internal Server Error",
+    });
+  }
+});
+
+route.post("/mail", userAuthViaToken, async (req, res) => {
+  try {
+    const EMAIL_ID = process.env.EMAIL_ID;
+    const EMAIL_PASS = process.env.EMAIL_PASS;
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: EMAIL_ID,
+        pass: EMAIL_PASS,
+      },
+    });
+    const mailOptions = {
+      from: EMAIL_ID,
+      to: EMAIL_ID,
+      subject: "Message from a user",
+      html: `<p>${req.body.message}</p>
+      <p>From <br/>
+      ${req.body.name} <br/>
+      Email : ${req.body.email}</p>`,
+    };
+    const info = await transporter.sendMail(mailOptions);
+    res.status(200).send({
+      success: true,
+      message: "mail sent",
     });
   } catch (err) {
     res.status(500).send({

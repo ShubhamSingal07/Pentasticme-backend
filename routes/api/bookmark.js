@@ -6,14 +6,23 @@ const { getAllBookmarks, addToBookmarks, removeFromBookmarks, getStory } = requi
 route.get("/", readerAuth, async (req, res) => {
   try {
     const bookmarks = await getAllBookmarks(req.user._id);
-    const stories = bookmarks.storyId.map(async id => await getStory(id, true));
-    console.log(stories);
-    res.status(200).send({
+    if (bookmarks) {
+      const stories = [];
+      for (let i = bookmarks.storyId.length - 1; i >= 0; i--) {
+        stories.push(getStory(bookmarks.storyId[i], true));
+      }
+      return res.status(200).send({
+        success: true,
+        user: req.user,
+        stories: await Promise.all(stories),
+      });
+    }
+    return res.status(200).send({
       success: true,
-      stories,
+      user: req.user,
+      stories: [],
     });
   } catch (err) {
-    console.log(err);
     res.status(500).send({
       error: "Internal Server Error",
     });
@@ -36,7 +45,7 @@ route.post("/", readerAuth, async (req, res) => {
 
 route.delete("/:storyId", readerAuth, async (req, res) => {
   try {
-    await removeFromBookmarks(req.user.id, storyId);
+    await removeFromBookmarks(req.user._id, req.params.storyId);
     res.status(200).send({
       success: true,
       message: "Story removed from bookmarks successfully",

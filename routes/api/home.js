@@ -8,7 +8,7 @@ const { getStories, getPhotos } = require("../../controllers");
 route.get("/", userAuthViaToken, async (req, res) => {
   try {
     const stories = getStories(3);
-    const photos = getPhotos(3);
+    const photos = getPhotos(3, 0, req.user);
     const data = [await stories, await photos];
     return res.status(200).send({
       success: true,
@@ -17,7 +17,6 @@ route.get("/", userAuthViaToken, async (req, res) => {
       photos: data[1],
     });
   } catch (err) {
-    console.log(err)
     res.status(500).send({
       error: "Internal Server Error",
     });

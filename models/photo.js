@@ -2,14 +2,14 @@ const mongoose = require("mongoose");
 
 const photoSchema = new mongoose.Schema(
   {
-    url: [String],
+    url: [{ url: String }],
     likes: {
       total: { type: Number, default: 0 },
       by: [{ userId: String, name: String }],
     },
     comments: {
       total: { type: Number, default: 0 },
-      comment: [{ commentId: String, userId: String, name: String, body: String }],
+      comment: [{ userId: String, thumbnail: String, name: String, body: String }],
     },
   },
   {

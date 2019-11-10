@@ -1,17 +1,34 @@
 const route = require("express").Router();
 const cloudinary = require("cloudinary").v2;
+const fs = require("fs");
 
-const { adminAuth } = require("../../middlewares");
+const { adminAuth, upload } = require("../../middlewares");
+const { changeAboutBackgroundImage } = require("../../controllers/aboutAndContact");
 
-route.post("/upload", adminAuth, async (req, res) => {
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+route.post("/upload", adminAuth, upload.any(), async (req, res) => {
   try {
-    const result = await cloudinary.uploader.upload(req.body.file);
-    console.log("printing image uploaded from cloudinary");
-    console.log(result);
+    const images = [];
+    for (let file of req.files) {
+      const path = file.path;
+      const uniqueFileName = new Date().toISOString();
+      const image = await cloudinary.uploader.upload(path, {
+        public_id: `photos/${uniqueFileName}`,
+        tags: "photos",
+      });
+      fs.unlinkSync(path);
+      images.push({ url: image.secure_url });
+    }
+    if (req.body.editBackgroundImage !== "undefined") await changeAboutBackgroundImage(images[0].url);
     res.status(200).send({
       success: true,
-      result,
-      message: "Imaage successfully uploaded",
+      image: images,
+      message: "Image successfully uploaded",
     });
   } catch (err) {
     res.status(500).send({

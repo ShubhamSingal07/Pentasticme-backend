@@ -20,7 +20,16 @@ const getDraft = async id => {
 
 const addToDrafts = async (id, title, body) => {
   try {
-    const draft = await Draft.findByIdAndUpdate(id, { title, body }, { new: true, upsert: true });
+    let draft;
+    if (id) {
+      draft = await Draft.findByIdAndUpdate(id, { title, body }, { new: true, upsert: true });
+    } else {
+
+      draft = await new Draft({
+        title,
+        body,
+      }).save();
+    }
     return draft.id;
   } catch (err) {
     throw new Error("Could not connect to Database. Please try again later.");

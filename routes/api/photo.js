@@ -10,59 +10,36 @@ const {
   editComment,
   deleteComment,
   addComment,
+  getIsLiked,
 } = require("../../controllers");
+const { Photo } = require("../../models/photo");
 
 route.get("/", userAuthViaToken, async (req, res) => {
   try {
     if (req.query.page) {
-      let photos = await getPhotos(12, req.query.page * 12);
-      photos = photos.map(photo => {
-        let isLiked = false;
-        const totalComments = photo.comments.total;
-        const totalLikes = photo.likes.total;
-        const arr = photo.likes.by;
-        if (req.user) {
-          for (let i = 0; i < arr.length; i++) {
-            if (arr[i].userId === req.user._id) {
-              isLiked = true;
-              break;
-            }
-          }
-        }
-        photo._doc.comments = totalComments;
-        photo._doc.likes = totalLikes;
-        photo._doc.isLiked = isLiked;
-        return {
-          photo,
-        };
-      });
-
+      const photos = await getPhotos(12, req.query.page * 12, req.user);
+      const count = await Photo.countDocuments();
       return res.status(200).send({
         success: true,
         user: req.user,
         photos,
+        pages: Math.ceil(count / 10),
       });
     }
 
     let isLiked = false;
     const photo = await getPhoto(req.query.photoId);
     if (req.user) {
-      let arr = photo.likes.by;
-      for (let i = 0; i < arr.length; i++) {
-        if (arr[i].userId === req.user._id) {
-          isLiked = true;
-          break;
-        }
-      }
+      isLiked = await getIsLiked(photo._id, req.user._id);
     }
     photo._doc.isLiked = isLiked;
+
     res.status(200).send({
       success: true,
       user: req.user,
       photo,
     });
   } catch (err) {
-    console.log(array);
     res.status(500).send({
       error: "Internal Server Error",
     });
@@ -114,7 +91,13 @@ route.patch("/dislike/:photoId", readerAuth, async (req, res) => {
 
 route.patch("/comment/add/:photoId", readerAuth, async (req, res) => {
   try {
-    const commentId = await addComment(req.user._id, req.user.username, req.params.photoId, req.body.comment);
+    const commentId = await addComment(
+      req.user._id,
+      req.user.thumbnail,
+      req.user.username,
+      req.params.photoId,
+      req.body.comment,
+    );
     res.status(200).send({
       success: true,
       commentId,
@@ -143,7 +126,7 @@ route.patch("/comment/edit/:photoId", readerAuth, async (req, res) => {
 
 route.delete("/comment/:photoId", readerAuth, async (req, res) => {
   try {
-    await deleteComment(req.params.photoId, req.body.commentId);
+    await deleteComment(req.params.photoId, req.body.commentId, req.user._id);
     res.status(200).send({
       success: true,
       message: "Comment deleted successfully",
