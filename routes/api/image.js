@@ -35,7 +35,6 @@ route.post("/upload", adminAuth, upload.any(), async (req, res) => {
       message: "Image successfully uploaded"
     });
   } catch (err) {
-    console.log(err);
     res.status(500).send({
       error: "Internal Server Error"
     });
