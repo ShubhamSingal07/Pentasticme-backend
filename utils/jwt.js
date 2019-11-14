@@ -1,8 +1,10 @@
 const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const config = require("../config.prod");
+const JWT_SECRET = config.JWT_SECRET;
 
-const createJWT = user => jwt.sign({ user }, JWT_SECRET, { expiresIn: 24*60*60 });
+const createJWT = user =>
+  jwt.sign({ user }, JWT_SECRET, { expiresIn: 24 * 30 * 60 * 60 });
 
 const verifyJWT = token => {
   const { user, exp } = jwt.decode(token, JWT_SECRET);
@@ -12,5 +14,5 @@ const verifyJWT = token => {
 
 module.exports = {
   createJWT,
-  verifyJWT,
+  verifyJWT
 };

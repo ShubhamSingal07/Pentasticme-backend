@@ -1,7 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-require("dotenv").config();
+
+const config = require("./config.prod");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -11,14 +12,17 @@ app.use(cors());
 app.use(express.json());
 app.use(
   express.urlencoded({
-    extended: true,
-  }),
+    extended: true
+  })
 );
 
 app.use("/api", require("./routes/api"));
 
 mongoose
-  .connect(process.env.MONGODB_URL, { useNewUrlParser: true, useFindAndModify: false })
+  .connect(config.MONGODB_URL, {
+    useNewUrlParser: true,
+    useFindAndModify: false
+  })
   .then(() => {
     app
       .listen(PORT, () => {

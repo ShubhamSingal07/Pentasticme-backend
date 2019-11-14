@@ -3,12 +3,15 @@ const cloudinary = require("cloudinary").v2;
 const fs = require("fs");
 
 const { adminAuth, upload } = require("../../middlewares");
-const { changeAboutBackgroundImage } = require("../../controllers/aboutAndContact");
+const {
+  changeAboutBackgroundImage
+} = require("../../controllers/aboutAndContact");
+const config = require("../../config.prod");
 
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: config.CLOUDINARY_CLOUD_NAME,
+  api_key: config.CLOUDINARY_API_KEY,
+  api_secret: config.CLOUDINARY_API_SECRET
 });
 
 route.post("/upload", adminAuth, upload.any(), async (req, res) => {
@@ -19,20 +22,22 @@ route.post("/upload", adminAuth, upload.any(), async (req, res) => {
       const uniqueFileName = new Date().toISOString();
       const image = await cloudinary.uploader.upload(path, {
         public_id: `photos/${uniqueFileName}`,
-        tags: "photos",
+        tags: "photos"
       });
       fs.unlinkSync(path);
       images.push({ url: image.secure_url });
     }
-    if (req.body.editBackgroundImage !== "undefined") await changeAboutBackgroundImage(images[0].url);
+    if (req.body.editBackgroundImage !== "undefined")
+      await changeAboutBackgroundImage(images[0].url);
     res.status(200).send({
       success: true,
       image: images,
-      message: "Image successfully uploaded",
+      message: "Image successfully uploaded"
     });
   } catch (err) {
+    console.log(err);
     res.status(500).send({
-      error: "Internal Server Error",
+      error: "Internal Server Error"
     });
   }
 });

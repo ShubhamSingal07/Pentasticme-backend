@@ -3,6 +3,7 @@ const nodemailer = require("nodemailer");
 
 const { userAuthViaToken, adminAuth } = require("../../middlewares");
 const { getContact, addToContact } = require("../../controllers");
+const config = require("../../config.prod");
 
 route.get("/", userAuthViaToken, async (req, res) => {
   try {
@@ -10,11 +11,11 @@ route.get("/", userAuthViaToken, async (req, res) => {
     res.status(200).send({
       success: true,
       user: req.user,
-      contact,
+      contact
     });
   } catch (err) {
     res.status(500).send({
-      error: "Internal Server Error",
+      error: "Internal Server Error"
     });
   }
 });
@@ -24,25 +25,25 @@ route.post("/", adminAuth, async (req, res) => {
     await addToContact(req.body.body);
     res.status(200).send({
       success: true,
-      message: "Contact successfully added",
+      message: "Contact successfully added"
     });
   } catch (err) {
     res.status(500).send({
-      error: "Internal Server Error",
+      error: "Internal Server Error"
     });
   }
 });
 
 route.post("/mail", userAuthViaToken, async (req, res) => {
   try {
-    const EMAIL_ID = process.env.EMAIL_ID;
-    const EMAIL_PASS = process.env.EMAIL_PASS;
+    const EMAIL_ID = config.EMAIL_ID;
+    const EMAIL_PASS = config.EMAIL_PASS;
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: EMAIL_ID,
-        pass: EMAIL_PASS,
-      },
+        pass: EMAIL_PASS
+      }
     });
     const mailOptions = {
       from: EMAIL_ID,
@@ -51,16 +52,16 @@ route.post("/mail", userAuthViaToken, async (req, res) => {
       html: `<p>${req.body.message}</p>
       <p>From <br/>
       ${req.body.name} <br/>
-      Email : ${req.body.email}</p>`,
+      Email : ${req.body.email}</p>`
     };
     const info = await transporter.sendMail(mailOptions);
     res.status(200).send({
       success: true,
-      message: "mail sent",
+      message: "mail sent"
     });
   } catch (err) {
     res.status(500).send({
-      error: "Internal Server Error",
+      error: "Internal Server Error"
     });
   }
 });
