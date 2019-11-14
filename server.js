@@ -21,7 +21,8 @@ app.use("/api", require("./routes/api"));
 mongoose
   .connect(config.MONGODB_URL, {
     useNewUrlParser: true,
-    useFindAndModify: false
+    useFindAndModify: false,
+    useUnifiedTopology: true
   })
   .then(() => {
     app
