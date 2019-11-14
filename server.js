@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 
 const app = express();
-// const port = process.env.PORT;
+const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 
@@ -21,8 +21,8 @@ mongoose
   .connect(process.env.MONGODB_URL, { useNewUrlParser: true, useFindAndModify: false })
   .then(() => {
     app
-      .listen(3001, () => {
-        console.log(`server started at http://localhost:${3001}`);
+      .listen(PORT, () => {
+        console.log(`server started at http://localhost:${PORT}`);
       })
       .on("error", console.log);
   })

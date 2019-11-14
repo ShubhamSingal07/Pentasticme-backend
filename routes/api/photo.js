@@ -68,7 +68,6 @@ route.patch("/like/:photoId", readerAuth, async (req, res) => {
       message: "Photo liked successfully",
     });
   } catch (err) {
-    console.log(err);
     res.status(500).send({
       error: "Internal Server Error",
     });
@@ -104,6 +103,7 @@ route.patch("/comment/add/:photoId", readerAuth, async (req, res) => {
       message: "Comment added successfully",
     });
   } catch (err) {
+    console.log(err)
     res.status(500).send({
       error: "Internal Server Error",
     });
