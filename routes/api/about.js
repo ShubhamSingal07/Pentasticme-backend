@@ -9,7 +9,7 @@ route.get("/", userAuthViaToken, async (req, res) => {
     res.status(200).send({
       success: true,
       user: req.user,
-      about: about || ""
+      about: about || "Wait until Admin writes about himself"
     });
   } catch (err) {
     res.status(500).send({
