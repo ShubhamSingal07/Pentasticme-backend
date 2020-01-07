@@ -9,12 +9,12 @@ route.get("/", userAuthViaToken, async (req, res) => {
     res.status(200).send({
       success: true,
       user: req.user,
-      about,
+      about: about || ""
     });
   } catch (err) {
     res.status(500).send({
       error: "Internal Server Error",
-      user: req.user,
+      user: req.user
     });
   }
 });
@@ -24,11 +24,11 @@ route.post("/", adminAuth, async (req, res) => {
     await addToAbout(req.body.body);
     res.status(200).send({
       success: true,
-      message: "About successfully added",
+      message: "About successfully added"
     });
   } catch (err) {
     res.status(500).send({
-      error: "Internal Server Error",
+      error: "Internal Server Error"
     });
   }
 });

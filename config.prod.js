@@ -6,5 +6,5 @@ module.exports = {
   CLOUDINARY_API_SECRET: "7r5_JkSkfN9soOBaU5_fUBey9AI",
   CLOUDINARY_API_KEY: "958166283633162",
   EMAIL_ID: "singalshubham312@gmail.com",
-  EMAIL_PASS: "singalshubham123#"
+  EMAIL_PASS: "shubham312#"
 };
