@@ -21,5 +21,5 @@ const userAuthViaToken = (req, res, next) => {
 };
 
 module.exports = {
-  userAuthViaToken,
+  userAuthViaToken
 };
