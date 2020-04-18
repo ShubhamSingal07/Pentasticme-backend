@@ -17,14 +17,14 @@ User gets multiple features while uploading images
 ## Homepage
 Homepage shows the list of latest blogs and latest images.
 
-<img src="public/images/demo1.png" alt="Home page"/>
+<img src="public/demo1.png" alt="Home page"/>
 
 ---
 
 ## Dashboard 
 Admin can manage role of the user and can check the number of posts written and images uploaded.
 
-<img src="public/images/demo2.png" alt="Deshboard">
+<img src="public/demo2.png" alt="Deshboard">
 
 ## Code
 Backend is made on ExpressJs and MongoDb is used for database. To start app open Backend folder and perform the following steps.
@@ -50,6 +50,7 @@ npm start
     │   ├── controllers             # database controller 
     |   ├── models                  # schema
     |   ├── middlewares             # middlewares
+    |   ├── public                  # public files
     |   ├── routes  
     |   |   ├── api                 # rest api              
     |   |   |   ├── ...             # contains all routes
